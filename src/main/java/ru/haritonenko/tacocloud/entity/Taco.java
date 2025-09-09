@@ -1,30 +1,47 @@
 package ru.haritonenko.tacocloud.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
-
 
 import java.util.Date;
 import java.util.List;
 
 @Data
 @Entity
+@Table(name = "Taco")
 public class Taco {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Date createdAt = new Date();
-    @NotNull
-    @Size(min=5, message="Name must be at least 5 characters long")
     private String name;
 
-    @NotNull
-    @Size(min=1, message="You must choose at least 1 ingredient")
-    @ManyToMany()
-    private List <Ingredient> ingredients;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "taco_order", nullable = false)
+    private TacoOrder tacoOrder;
+
+    @Column(name = "created_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date createdAt;
+
+    @ManyToMany
+    @JoinTable(
+            name = "Ingredient_Ref",
+            joinColumns = @JoinColumn(name = "taco"),
+            inverseJoinColumns = @JoinColumn(name = "ingredient")
+    )
+    private List<Ingredient> ingredients;
 
 
+    @PrePersist
+    void setCreatedAt() {
+        this.createdAt = new Date();
+    }
+    @Override
+    public String toString() {
+        String ing = (ingredients == null) ? "[]" :
+                ingredients.stream().map(Ingredient::getId).toList().toString();
+        return "Taco{id=" + id + ", name=" + name + ", ingredients=" + ing + "}";
+    }
 }
