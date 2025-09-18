@@ -6,6 +6,7 @@ import ru.haritonenko.tacocloud.entity.Ingredient;
 
 
 
+
 public interface IngredientRepository extends CrudRepository<Ingredient, String> {
 
 

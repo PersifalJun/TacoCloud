@@ -1,0 +1,74 @@
+version: "3.9"
+
+services:
+  # === Cassandra DB ===
+  cassandra:
+    image: cassandra:4.1
+    container_name: tacocloud-cassandra
+    ports:
+      - "9042:9042"                          # хост:контейнер
+    environment:
+      # авто-детект IP контейнера для слушающих адресов
+      CASSANDRA_LISTEN_ADDRESS: auto
+      CASSANDRA_BROADCAST_ADDRESS: auto
+      CASSANDRA_RPC_ADDRESS: 0.0.0.0
+      # НЕ указывать CASSANDRA_BROADCAST_RPC_ADDRESS (пусть возьмётся автоматически)
+      MAX_HEAP_SIZE: 1G
+      HEAP_NEWSIZE: 256M
+      JVM_OPTS: "-Djava.net.preferIPv4Stack=true -Dcassandra.skip_wait_for_gossip_to_settle=0"
+    volumes:
+      - cassandra_data:/var/lib/cassandra
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh 127.0.0.1 9042 -e 'DESCRIBE KEYSPACES' || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+    restart: unless-stopped
+
+  # === Одноразовая инициализация схемы (если нужна) ===
+  cassandra-init:
+    image: cassandra:4.1
+    depends_on:
+      cassandra:
+        condition: service_healthy
+    entrypoint: ["sh","-lc","cqlsh cassandra 9042 -f /init/init.cql"]
+    volumes:
+      - ./init:/init:ro
+    restart: "no"
+
+  # === Веб-интерфейс к Cassandra ===
+  cassandra-web:
+    image: ipushc/cassandra-web:latest
+    container_name: tacocloud-cassandra-web
+    depends_on:
+      cassandra:
+        condition: service_healthy
+    environment:
+      CASSANDRA_HOST: cassandra
+      CASSANDRA_PORT: 9042
+    ports:
+      - "3000:3000"                          # хост-порт 3000
+    restart: unless-stopped
+
+  # === Ваше Spring Boot приложение ===
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tacocloud-app
+    depends_on:
+      cassandra:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CASSANDRA_CONTACT_POINTS: cassandra
+      SPRING_CASSANDRA_PORT: 9042
+      SPRING_CASSANDRA_KEYSPACE_NAME: tacocloud
+      SPRING_CASSANDRA_LOCAL_DATACENTER: datacenter1
+      SPRING_CASSANDRA_SCHEMA_ACTION: create-if-not-exists
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  cassandra_data:
