@@ -1,4 +1,4 @@
-package ru.haritonenko.tacocloud.converter;
+package ru.haritonenko.tacocloud.converter.cassandra;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;

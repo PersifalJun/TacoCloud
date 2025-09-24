@@ -1,19 +1,94 @@
+server:
+  port: 8443
+  ssl:
+    enabled: true
+    key-store: "file:/C:/Users/harit/OneDrive/Рабочий стол/Java/TacoCloud/mykeys.p12"
+    key-store-type: PKCS12
+    key-store-password: "redux123"
+    key-password: "redux123"
+    key-alias: tomcat
+
+
+taco:
+  orders:
+    page-size: 10
+
 spring:
+#  config:
+#    activate:
+#      on-profile: dev
+
   application:
     name: TacoCloud
+
+
 
   thymeleaf:
     cache: false
 
-  cassandra:
-    contact-points: localhost
-    port: 9042
-    keyspace-name: tacocloud
-    local-datacenter: datacenter1
-    schema-action: create-if-not-exists
-    username: tacocloud
-    password: tacocloud
+
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: harit
+    password: redux
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: none
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    defer-datasource-initialization: true
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/h2/schema.sql
+      data-locations: classpath:db/h2/data.sql
+
+
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+
+
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: YOUR_GOOGLE_CLIENT_ID
+            client-secret: YOUR_GOOGLE_CLIENT_SECRET
+            scope:
+                - openid
+                - profile
+                - email
 
 logging:
+  file:
+    path: srs/main/java/ru/haritonenko/tacocloud/logs
+    file: TacoCloud.log
   level:
-    com.datastax.oss.driver: INFO
+    org.springframework.jdbc.datasource.init: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+    root: WARN
+    org.springframework.security: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+  url: jdbc:mysql://localhost/tacocloud
+  username: tacouser
+  password: tacopassword
+logging:
+  level:
+    tacos: WARN

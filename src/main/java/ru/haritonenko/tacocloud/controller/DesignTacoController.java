@@ -9,7 +9,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
-import ru.haritonenko.tacocloud.db.cassandra.udt.TacoUDT;
 import ru.haritonenko.tacocloud.entity.Ingredient;
 import ru.haritonenko.tacocloud.entity.Taco;
 import ru.haritonenko.tacocloud.entity.TacoOrder;
@@ -70,7 +69,8 @@ public class DesignTacoController {
     }
 
     @PostMapping
-    public String processTaco(@Valid TacoUDT taco, Errors errors, @ModelAttribute TacoOrder tacoOrder){
+    public String processTaco(@Valid Taco taco, Errors errors, @ModelAttribute TacoOrder tacoOrder){
+
         if (errors.hasErrors()) {
             return "design";
         }

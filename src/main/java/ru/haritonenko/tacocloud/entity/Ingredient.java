@@ -1,24 +1,19 @@
 package ru.haritonenko.tacocloud.entity;
 
-import org.springframework.data.cassandra.core.mapping.PrimaryKey;
-import org.springframework.data.cassandra.core.mapping.Table;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import jakarta.persistence.*;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import ru.haritonenko.tacocloud.enums.Type;
 
-import java.util.UUID;
+
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor(access=AccessLevel.PRIVATE, force=true)
-@Table("ingredients")
+@Entity
+@Table(name = "Ingredient")
 public class Ingredient {
-    @PrimaryKey
+    @Id
     private String id;
     private String name;
+    @Enumerated(EnumType.STRING)
     private Type type;
 
 }
