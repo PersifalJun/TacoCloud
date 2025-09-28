@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -15,7 +16,6 @@ import ru.haritonenko.tacocloud.repository.UserRepository;
 import ru.haritonenko.tacocloud.entity.user.User;
 
 import static org.springframework.boot.autoconfigure.security.servlet.PathRequest.toH2Console;
-import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true)
@@ -38,19 +38,32 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
+        return http
+                // Авторизация запросов
                 .authorizeHttpRequests(auth -> auth
+                        // общедоступные страницы UI
                         .requestMatchers("/", "/login", "/register",
                                 "/images/**", "/styles.css", "/webjars/**").permitAll()
-                        .requestMatchers(toH2Console()).permitAll()              // ← 1) доступ к H2
+                        // H2-консоль
+                        .requestMatchers(toH2Console()).permitAll()
+                        // OAuth2 редиректы логина (если используешь oauth2Login для UI)
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
-                        .requestMatchers("/design", "/orders/**").hasRole("USER")
-                        .requestMatchers(HttpMethod.POST, "/admin/**").hasRole("USER")
+
+                        // --- ПРОВЕРКА СКОУПОВ ДЛЯ API ---
+                        .requestMatchers(HttpMethod.POST,   "/data-api/ingredients/**")
+                        .hasAuthority("SCOPE_writeIngredients")
+                        .requestMatchers(HttpMethod.DELETE, "/data-api/ingredients/**")
+                        .hasAuthority("SCOPE_deleteIngredients")
+
+                        // остальное требует аутентификации (GET/PUT/PATCH и т.д.)
                         .anyRequest().authenticated()
                 )
-                .csrf(csrf -> csrf.ignoringRequestMatchers(toH2Console())) // ← 2) игнор CSRF
-                .headers(h -> h.frameOptions(f -> f.sameOrigin()))         // ← 3) разрешить фреймы
-                .httpBasic(withDefaults())
+
+                // технастройки для H2-консоли
+                .csrf(csrf -> csrf.ignoringRequestMatchers(toH2Console()))
+                .headers(h -> h.frameOptions(f -> f.sameOrigin()))
+
+                // форма логина для твоего веб-интерфейса (дизайн/заказы и т.п.)
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
@@ -63,22 +76,14 @@ public class SecurityConfig {
                         .loginPage("/login")
                         .defaultSuccessUrl("/design", true)
                 )
-                .logout(logout -> logout.logoutSuccessUrl("/"));
 
-        return http.build();
+                // ВКЛЮЧАЕМ ПРОВЕРКУ JWT (это и есть Resource Server)
+                .oauth2ResourceServer(oauth -> oauth.jwt(Customizer.withDefaults()))
+
+                .logout(logout -> logout.logoutSuccessUrl("/"))
+                .build();
     }
 
-//    @Override
-//    protected void configure(HttpSecurity http) throws Exception {
-//        http
-//                .authorizeRequests()
-//
-//                .antMatchers(HttpMethod.POST, "/api/ingredients")
-//                .hasAuthority("SCOPE_writeIngredients")
-//                .antMatchers(HttpMethod.DELETE, "/api//ingredients")
-//                .hasAuthority("SCOPE_deleteIngredients")
-//
-//    }
 
 
 

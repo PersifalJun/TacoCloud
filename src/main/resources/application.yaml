@@ -68,6 +68,13 @@ spring:
     oauth2:
       client:
         registration:
+          taco-admin-client:
+            provider: tacocloud
+            client-id: taco-admin-client
+            client-secret: secret
+            authorization-grant-type: authorization_code
+            redirect-uri: "http://127.0.0.1:9090/login/oauth2/code/{registrationId}"
+            scope: writeIngredients,deleteIngredients,openid
           google:
             client-id: YOUR_GOOGLE_CLIENT_ID
             client-secret: YOUR_GOOGLE_CLIENT_SECRET
@@ -77,7 +84,8 @@ spring:
                 - email
       resourceserver:
           jwt:
-            issuer-uri: http://localhost:9000
+#            issuer-uri: http://localhost:9000
+            jwk-set-uri: http://localhost:9000/oauth2/jwks
 
 logging:
   file:
