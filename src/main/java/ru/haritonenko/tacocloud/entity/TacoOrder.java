@@ -2,6 +2,7 @@
 package ru.haritonenko.tacocloud.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
@@ -64,6 +65,7 @@ public class TacoOrder {
 
     @ManyToOne
     @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_order_user"),nullable = false)
+    @JsonIgnore
     private User user;
 
     @OneToMany(
@@ -72,6 +74,7 @@ public class TacoOrder {
             orphanRemoval = true
     )
     @OrderColumn(name = "taco_order_key")
+    @JsonIgnore
     private List<Taco> tacos = new ArrayList<>();
 
     public void addTaco(Taco taco) {

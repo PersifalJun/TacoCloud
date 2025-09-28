@@ -15,6 +15,7 @@ import ru.haritonenko.tacocloud.repository.UserRepository;
 import ru.haritonenko.tacocloud.entity.user.User;
 
 import static org.springframework.boot.autoconfigure.security.servlet.PathRequest.toH2Console;
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true)
@@ -44,12 +45,12 @@ public class SecurityConfig {
                         .requestMatchers(toH2Console()).permitAll()              // ← 1) доступ к H2
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers("/design", "/orders/**").hasRole("USER")
-                        .requestMatchers(HttpMethod.POST, "/admin/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/admin/**").hasRole("USER")
                         .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf.ignoringRequestMatchers(toH2Console())) // ← 2) игнор CSRF
                 .headers(h -> h.frameOptions(f -> f.sameOrigin()))         // ← 3) разрешить фреймы
-
+                .httpBasic(withDefaults())
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
@@ -66,5 +67,19 @@ public class SecurityConfig {
 
         return http.build();
     }
+
+//    @Override
+//    protected void configure(HttpSecurity http) throws Exception {
+//        http
+//                .authorizeRequests()
+//
+//                .antMatchers(HttpMethod.POST, "/api/ingredients")
+//                .hasAuthority("SCOPE_writeIngredients")
+//                .antMatchers(HttpMethod.DELETE, "/api//ingredients")
+//                .hasAuthority("SCOPE_deleteIngredients")
+//
+//    }
+
+
 
 }

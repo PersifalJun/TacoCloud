@@ -1,4 +1,4 @@
-package ru.haritonenko.tacocloud.utils;
+package ru.haritonenko.tacocloud.db.cassandra.udt.utils;
 
 
 

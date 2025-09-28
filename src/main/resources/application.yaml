@@ -21,6 +21,13 @@ spring:
   application:
     name: TacoCloud
 
+  jackson:
+    serialization:
+      indent-output: true   # pretty-print
+
+  data:
+    rest:
+      base-path: /data-api
 
 
   thymeleaf:
@@ -68,15 +75,18 @@ spring:
                 - openid
                 - profile
                 - email
+      resourceserver:
+          jwt:
+            issuer-uri: http://localhost:9000
 
 logging:
   file:
-    path: srs/main/java/ru/haritonenko/tacocloud/logs
-    file: TacoCloud.log
+    path: C:/Users/harit/OneDrive/Рабочий стол/Java/TacoCloud/logs/TacoCloud.log
+
   level:
     org.springframework.jdbc.datasource.init: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE
-    root: WARN
+    root: INFO
     org.springframework.security: DEBUG
 
 ---
